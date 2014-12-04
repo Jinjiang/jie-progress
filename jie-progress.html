@@ -1,0 +1,220 @@
+<!--
+  # progress
+
+  图标
+
+  * 支持 status="info|success|warning|danger" 四种状态
+  * 支持 active, striped 两种特效
+  * 支持 value 值
+  * 支持 bind/unbind 到一个支持 [Progress Events](http://www.w3.org/TR/progress-events/) 规范的对象
+
+  ## Example
+
+  ```html
+  <jie-progress value="30" status="danger" active striped></jie-progress>
+
+  <script>
+    var progress = document.querySelector('jie-progress');
+    var xhr = new XMLHttpRequest();
+    ...
+    progress.bind(xhr);
+    progress.addEventListener('progress', function (e) {
+      console.log(this.value);
+    });
+  </script>
+  ```
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="jie-progress" attributes="value, status, active, striped">
+
+  <template>
+    <style>
+      @-webkit-keyframes progress-bar-stripes {
+        from {
+          background-position: 40px 0;
+        }
+        to {
+          background-position: 0 0;
+        }
+      }
+      @keyframes progress-bar-stripes {
+        from {
+          background-position: 40px 0;
+        }
+        to {
+          background-position: 0 0;
+        }
+      }
+      :host {
+        display: block;
+        overflow: hidden;
+        margin-bottom: 20px;
+        position: relative;
+        font-size: 10px;
+        height: 10px;
+        line-height: 10px;
+        border: 1px solid #cc5200;
+        border-radius: 5px;
+        background-color: white;
+        -webkit-text-size-adjust: none;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
+      #bar {
+        float: left;
+        width: 0%;
+        height: 100%;
+        font-size: 12px;
+        line-height: 20px;
+        color: #ffffff;
+        text-align: center;
+        background-color: #ff6600;
+        -webkit-transition: width 0.6s ease;
+        transition: width 0.6s ease;
+      }
+      #bar:first-child {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+      }
+      #bar:last-child {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+      :host([active]) #bar {
+        -webkit-animation: progress-bar-stripes 2s linear infinite;
+        animation: progress-bar-stripes 2s linear infinite;
+      }
+      :host([striped]) #bar {
+        background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-size: 40px 40px;
+      }
+      :host([status="success"]) #bar {
+        background-color: #5cb85c;
+      }
+      :host([status="success"][striped]) #bar {
+        background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+      }
+      :host([status="info"]) #bar {
+        background-color: #5bc0de;
+      }
+      :host([status="info"][striped]) #bar {
+        background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+      }
+      :host([status="warning"]) #bar {
+        background-color: #f0ad4e;
+      }
+      :host([status="warning"][striped]) #bar {
+        background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+      }
+      :host([status="danger"]) #bar {
+        background-color: #d9534f;
+      }
+      :host([status="danger"][striped]) #bar {
+        background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+      }
+    </style>
+    <span id="bar" style="{{'width: ' + width + '%'}}"></span>
+  </template>
+
+  <script>
+    (function () {
+
+      Polymer('jie-progress', {
+
+        value: 0,
+
+        status: '',
+
+        computed: {
+          width: 'value | parse'
+        },
+
+        parse: function (value) {
+          value = parseInt(value, 10) || 0;
+          if (value > 100) {
+            value = 100;
+          }
+          if (value < 0) {
+            value = 0;
+          }
+          return value;
+        },
+
+        bind: function (target) {
+          var self = this;
+
+          if (!target || !target.addEventListener) {
+            return;
+          }
+
+          function loadstart(e) {
+            self.value = 0;
+            self.status = '';
+            self.fire('start');
+          }
+
+          function progress(e) {
+            if (this.lengthComputable) {
+              self.value = Math.ceil(100 * this.loaded / this.total);
+            }
+            else {
+              self.value = 100;
+              self.active = true;
+              self.striped = true;
+            }
+            self.status = '';
+            self.fire('progress');
+          }
+
+          function error(e) {
+            self.status = 'danger';
+            self.fire('danger');
+          }
+
+          function abort(e) {
+            self.status = 'warning';
+            self.fire('warning');
+          }
+
+          function load(e) {
+            self.value = 100;
+            self.status = 'success';
+            self.fire('success');
+          }
+
+          target.addEventListener('loadstart', loadstart);
+          target.addEventListener('progress', progress);
+          target.addEventListener('error', error);
+          target.addEventListener('abort', abort);
+          target.addEventListener('load', load);
+
+          target.progressHandlers = {
+            loadstart: loadstart,
+            progress: progress,
+            error: error,
+            abort: abort,
+            load: load
+          };
+        },
+
+        unbind: function (target) {
+          if (target && target.progressHandlers) {
+            target.removeEventListener('loadstart', target.progressHandlers.loadstart);
+            target.removeEventListener('progress', target.progressHandlers.progress);
+            target.removeEventListener('error', target.progressHandlers.error);
+            target.removeEventListener('abort', target.progressHandlers.abort);
+            target.removeEventListener('load', target.progressHandlers.load);
+          }
+        }
+      });
+    })();
+  </script>
+
+</polymer-element>

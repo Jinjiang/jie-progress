@@ -1,0 +1,8 @@
+{
+  "name": "jie-progress",
+  "version": "0.0.1",
+  "main": "jie-progress.html",
+  "dependencies": {
+    "polymer": "~0.5.0"
+  }
+}
