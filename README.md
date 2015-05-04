@@ -1,24 +1,56 @@
-# progress
+# `<z-progress>`
 
-图标
+Progress bar which supports progress events
 
-* 支持 status="info|success|warning|danger" 四种状态
-* 支持 active, striped 两种特效
-* 支持 value 值，从 0 到 100
-* 可以 bind/unbind 到一个支持 [Progress Events](http://www.w3.org/TR/progress-events/) 规范的对象
+## Attributes
 
-## Example
+- `status`: `info` | `success` | `warning` | `danger`
+- `active` | `striped`
+- `value`: 0 ~ 100
 
-```html
-<jie-progress value="30" status="danger" active striped></jie-progress>
+## Methods
+
+- `bind(target)` | `unbind(target)`: Bind or unbind to a target which supports [Progress Events](http://www.w3.org/TR/progress-events/) spec. When a `<z-progress>` element is bound, the progress value of the target will be reflected.
+
+## Examples
+
+```
+<z-progress value="30"></z-progress>
+<z-progress value="40" status="success"></z-progress>
+<z-progress value="50" status="info"></z-progress>
+<z-progress value="60" status="warning"></z-progress>
+<z-progress value="70" status="danger"></z-progress>
+<z-progress value="80" striped></z-progress>
+<z-progress value="90" striped status="success"></z-progress>
+<z-progress value="110" striped status="info"></z-progress>
+<z-progress value="-20" striped status="warning"></z-progress>
+<z-progress value="20" striped status="warning"></z-progress>
+<z-progress value="30" striped status="danger"></z-progress>
+<z-progress value="40" striped active></z-progress>
+<z-progress value="50" striped active status="success"></z-progress>
+<z-progress value="60" striped active status="info"></z-progress>
+<z-progress value="70" striped active status="warning"></z-progress>
+<z-progress value="80" striped active status="danger"></z-progress>
+<z-progress value="asdf" striped active status="danger"></z-progress>
+```
+
+### Progress Events
+
+```
+<z-progress id="z-progress-event" value="30" status="danger" active striped></z-progress>
 
 <script>
-  var progress = document.querySelector('jie-progress');
-  var xhr = new XMLHttpRequest();
-  ...
-  progress.bind(xhr);
-  progress.addEventListener('progress', function (e) {
-    console.log(this.value);
-  });
+  var target = document.createElement('div');
+  target.lengthComputable = true;
+  target.loaded = 0;
+  target.total = 10000;
+
+  var progress = document.querySelector('html /deep/ #z-progress-event');
+  progress.bind(target);
+
+  setInterval(function fire() {
+    target.loaded = (target.loaded + 500) % 11000;
+    target.dispatchEvent(new CustomEvent('progress'));
+  }, 500);
 </script>
 ```
