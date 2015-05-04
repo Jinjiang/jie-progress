@@ -1,33 +1,73 @@
 <!--
-  # progress
 
-  图标
+@element z-progress
 
-  * 支持 status="info|success|warning|danger" 四种状态
-  * 支持 active, striped 两种特效
-  * 支持 value 值
-  * 支持 bind/unbind 到一个支持 [Progress Events](http://www.w3.org/TR/progress-events/) 规范的对象
+# `<z-progress>`
 
-  ## Example
+Progress bar which supports progress events
 
-  ```html
-  <jie-progress value="30" status="danger" active striped></jie-progress>
+## Attributes
 
-  <script>
-    var progress = document.querySelector('jie-progress');
-    var xhr = new XMLHttpRequest();
-    ...
-    progress.bind(xhr);
-    progress.addEventListener('progress', function (e) {
-      console.log(this.value);
-    });
-  </script>
-  ```
+- `status`: `info` | `success` | `warning` | `danger`
+- `active` | `striped`
+- `value`: 0 ~ 100
+
+## Methods
+
+- `bind(target)` | `unbind(target)`: Bind or unbind to a target which supports [Progress Events](http://www.w3.org/TR/progress-events/) spec. When a `<z-progress>` element is bound, the progress value of the target will be reflected.
+
+-->
+
+<!--
+
+@example all kinds of progress
+
+<z-progress value="30"></z-progress>
+<z-progress value="40" status="success"></z-progress>
+<z-progress value="50" status="info"></z-progress>
+<z-progress value="60" status="warning"></z-progress>
+<z-progress value="70" status="danger"></z-progress>
+<z-progress value="80" striped></z-progress>
+<z-progress value="90" striped status="success"></z-progress>
+<z-progress value="110" striped status="info"></z-progress>
+<z-progress value="-20" striped status="warning"></z-progress>
+<z-progress value="20" striped status="warning"></z-progress>
+<z-progress value="30" striped status="danger"></z-progress>
+<z-progress value="40" striped active></z-progress>
+<z-progress value="50" striped active status="success"></z-progress>
+<z-progress value="60" striped active status="info"></z-progress>
+<z-progress value="70" striped active status="warning"></z-progress>
+<z-progress value="80" striped active status="danger"></z-progress>
+<z-progress value="asdf" striped active status="danger"></z-progress>
+
+-->
+
+<!--
+
+@example progress events
+
+<z-progress id="z-progress-event" value="30" status="danger" active striped></z-progress>
+
+<script>
+  var target = document.createElement('div');
+  target.lengthComputable = true;
+  target.loaded = 0;
+  target.total = 10000;
+
+  var progress = document.querySelector('html /deep/ #z-progress-event');
+  progress.bind(target);
+
+  setInterval(function fire() {
+    target.loaded = (target.loaded + 500) % 11000;
+    target.dispatchEvent(new CustomEvent('progress'));
+  }, 500);
+</script>
+
 -->
 
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="jie-progress" attributes="value, status, active, striped">
+<polymer-element name="z-progress" attributes="value, status, active, striped">
 
   <template>
     <style>
@@ -71,8 +111,8 @@
         color: #ffffff;
         text-align: center;
         background-color: #ff6600;
-        -webkit-transition: width 0.6s ease;
-        transition: width 0.6s ease;
+        -webkit-transition: width 0.5s linear;
+        transition: width 0.5s linear;
       }
       #bar:first-child {
         border-top-left-radius: 5px;
@@ -126,7 +166,7 @@
   <script>
     (function () {
 
-      Polymer('jie-progress', {
+      Polymer('z-progress', {
 
         value: 0,
 
@@ -134,6 +174,11 @@
 
         computed: {
           width: 'value | parse'
+        },
+
+        created: function () {
+          this.targetList = [];
+          this.handlerMapList = [];
         },
 
         parse: function (value) {
@@ -148,69 +193,81 @@
         },
 
         bind: function (target) {
-          var self = this;
 
-          if (!target || !target.addEventListener) {
+          if (!target || !target.addEventListener || this.targetList.indexOf(target) >= 0) {
             return;
           }
 
-          function loadstart(e) {
-            self.value = 0;
-            self.status = '';
-            self.fire('start');
+          function onloadstart(e) {
+            this.value = 0;
+            this.status = '';
+            this.fire('start');
           }
 
-          function progress(e) {
-            if (this.lengthComputable) {
-              self.value = Math.ceil(100 * this.loaded / this.total);
+          function onprogress(e) {
+            var target = e.target;
+
+            if (target.lengthComputable) {
+              this.value = Math.ceil(100 * target.loaded / target.total);
             }
             else {
-              self.value = 100;
-              self.active = true;
-              self.striped = true;
+              this.value = 100;
+              this.active = true;
+              this.striped = true;
             }
-            self.status = '';
-            self.fire('progress');
+            this.status = '';
+            this.fire('progress');
           }
 
-          function error(e) {
-            self.status = 'danger';
-            self.fire('danger');
+          function onerror(e) {
+            this.status = 'danger';
+            this.fire('danger');
           }
 
-          function abort(e) {
-            self.status = 'warning';
-            self.fire('warning');
+          function onabort(e) {
+            this.status = 'warning';
+            this.fire('warning');
           }
 
-          function load(e) {
-            self.value = 100;
-            self.status = 'success';
-            self.fire('success');
+          function onload(e) {
+            this.value = 100;
+            this.status = 'success';
+            this.fire('success');
           }
 
-          target.addEventListener('loadstart', loadstart);
-          target.addEventListener('progress', progress);
-          target.addEventListener('error', error);
-          target.addEventListener('abort', abort);
-          target.addEventListener('load', load);
-
-          target.progressHandlers = {
-            loadstart: loadstart,
-            progress: progress,
-            error: error,
-            abort: abort,
-            load: load
+          var handlerMap = {
+            onloadstart: onloadstart.bind(this),
+            onprogress: onprogress.bind(this),
+            onerror: onerror.bind(this),
+            onabort: onabort.bind(this),
+            onload: onload.bind(this)
           };
+
+          target.addEventListener('loadstart', handlerMap.onloadstart);
+          target.addEventListener('progress', handlerMap.onprogress);
+          target.addEventListener('error', handlerMap.onerror);
+          target.addEventListener('abort', handlerMap.onabort);
+          target.addEventListener('load', handlerMap.onload);
+
+          this.handlerMapList.push(handlerMap);
         },
 
         unbind: function (target) {
-          if (target && target.progressHandlers) {
-            target.removeEventListener('loadstart', target.progressHandlers.loadstart);
-            target.removeEventListener('progress', target.progressHandlers.progress);
-            target.removeEventListener('error', target.progressHandlers.error);
-            target.removeEventListener('abort', target.progressHandlers.abort);
-            target.removeEventListener('load', target.progressHandlers.load);
+          var index = this.targetList.indexOf(target);
+          var handlerMap;
+
+          if (index >= 0) {
+            handlerMap = this.handlerMapList[index];
+
+            if (handlerMap) {
+              target.removeEventListener('loadstart', handlerMap.onloadstart);
+              target.removeEventListener('progress', handlerMap.onprogress);
+              target.removeEventListener('error', handlerMap.onerror);
+              target.removeEventListener('abort', handlerMap.onabort);
+              target.removeEventListener('load', handlerMap.onload);
+            }
+
+            this.handlerMapList.splice(index, 1);
           }
         }
       });
