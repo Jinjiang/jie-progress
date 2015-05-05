@@ -1,0 +1,20 @@
+{
+  "name": "z-progress",
+  "version": "1.0.0",
+  "description": "progress element in zorro",
+  "main": "z-progress.html",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:zorro-html/z-progress.git"
+  },
+  "author": "Jinjiang",
+  "bugs": {
+    "url": "https://github.com/zorro-html/z-progress/issues"
+  },
+  "homepage": "https://github.com/zorro-html/z-progress",
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-jshint": "^1.10.0",
+    "package": "^1.0.1"
+  }
+}
